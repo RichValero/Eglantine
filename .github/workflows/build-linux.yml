@@ -193,8 +193,8 @@ jobs:
             )
           fi
           if [ '${{ inputs.symbols }}' = 'true' ]; then
-            # Debug info for profiling; optimisation stays that of Release.
-            flags+=("-DCMAKE_C_FLAGS=-g" "-DCMAKE_CXX_FLAGS=-g")
+            # Minimal debug info (function names) for profiling; optimisation stays that of Release.
+            flags+=("-DCMAKE_C_FLAGS=-g1" "-DCMAKE_CXX_FLAGS=-g1")
           fi
           cmake -S . -B build/release -G Ninja "${flags[@]}"
 
