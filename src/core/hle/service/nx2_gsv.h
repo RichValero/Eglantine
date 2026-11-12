@@ -1759,6 +1759,14 @@ private:
                                    app_program_id == OcarinaOfTimeProgramId)) {
             frames_ahead = 0;
         }
+#ifdef __ANDROID__
+        // Android has no easy way to set EDEN_NX2_FRAMES_AHEAD: run a frame ahead by default
+        // (the titles above keep waiting). Fire Emblem: Fortune's Weave went from ~20 fps to its
+        // 30 fps cap on desktop with it, the GPU no longer waiting on the CPU and vice versa.
+        if (frames_ahead == -1) {
+            frames_ahead = 1;
+        }
+#endif
         const auto entered = std::chrono::steady_clock::now();
         if (frames_ahead == 1 || (frames_ahead == -1 && !WaitForFrame(~w[22], w[24], true))) {
             LOG_DEBUG(Service, "nx2:vi2 present #{} fence ({}, {:#x}), waiting for ({}, {:#x}); now {:#x}",
