@@ -1,0 +1,21 @@
+name: profile-build
+
+# Manual build of the chosen branch for profiling: Linux x86_64 only, with debug symbols.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    uses: ./.github/workflows/build-linux.yml
+    with:
+      sha: ${{ github.sha }}
+      version: profile-${{ github.ref_name }}-${{ github.sha }}
+      refspec: ${{ github.ref }}
+      tag: profile
+      release: false
+      nightly: true
+      pgo: none
+      symbols: true

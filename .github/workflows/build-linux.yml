@@ -27,6 +27,10 @@ on:
         description: none or both
         type: string
         default: none
+      symbols:
+        description: x86_64 only, built with debug info and not stripped (for profiling)
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -50,7 +54,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [x86_64, aarch64]
+        arch: ${{ fromJSON(inputs.symbols && '["x86_64"]' || '["x86_64", "aarch64"]') }}
         pgo: ${{ fromJSON(inputs.pgo == 'only' && '[true]' || (inputs.pgo == 'both' && '[false, true]' || '[false]')) }}
 
     steps:
@@ -188,6 +192,10 @@ jobs:
               "-DCMAKE_CXX_FLAGS=$profile"
             )
           fi
+          if [ '${{ inputs.symbols }}' = 'true' ]; then
+            # Debug info for profiling; optimisation stays that of Release.
+            flags+=("-DCMAKE_C_FLAGS=-g" "-DCMAKE_CXX_FLAGS=-g")
+          fi
           cmake -S . -B build/release -G Ninja "${flags[@]}"
 
       - name: Build
@@ -205,7 +213,9 @@ jobs:
           set -euo pipefail
           test -x build/release/bin/eglantine
           test -x build/release/bin/eden-cli
-          strip build/release/bin/eglantine build/release/bin/eden-cli
+          if [ '${{ inputs.symbols }}' != 'true' ]; then
+            strip build/release/bin/eglantine build/release/bin/eden-cli
+          fi
           tar -czf "eglantine-${SHA}-${PLATFORM}.tar.gz" \
             -C build/release/bin eglantine eden-cli
           ls -la "eglantine-${SHA}-${PLATFORM}.tar.gz"
@@ -242,6 +252,9 @@ jobs:
           export LDAI_OUTPUT="eglantine-${SHA}-${PLATFORM}.AppImage"
           export OUTPUT="$LDAI_OUTPUT"
           export ARCH="$arch"
+          if [ '${{ inputs.symbols }}' = 'true' ]; then
+            export NO_STRIP=1
+          fi
           "$tools/linuxdeploy-$arch.AppImage" --appdir AppDir \
             --executable build/release/bin/eglantine \
             --executable build/release/bin/eden-cli \
