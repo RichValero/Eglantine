@@ -1,7 +1,10 @@
 name: profile-build
 
-# Manual build of the chosen branch for profiling: Linux x86_64 only, with debug symbols.
+# Build for profiling: Linux x86_64 only, with debug symbols. Runs on every push to perf-fefw.
 on:
+  push:
+    branches:
+      - perf-fefw
   workflow_dispatch:
 
 permissions:
