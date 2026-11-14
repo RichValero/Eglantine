@@ -15,6 +15,18 @@ jobs:
   apk:
     runs-on: ubuntu-24.04
     timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: normal
+            app_id: dev.eglantine.emulator
+            app_name: Eglantine
+            cmake_args: ""
+          - variant: frames-ahead
+            app_id: dev.eglantine.emulator.fa
+            app_name: Eglantine FA
+            cmake_args: -DCMAKE_CXX_FLAGS=-DEGLANTINE_FRAMES_AHEAD_DEFAULT
     steps:
       - name: Check out source
         uses: actions/checkout@v7
@@ -41,16 +53,18 @@ jobs:
         shell: bash
         env:
           CCACHE: "false"
+          EGL_APP_ID: ${{ matrix.app_id }}
+          EGL_APP_NAME: ${{ matrix.app_name }}
         run: |
           set -euo pipefail
           chmod +x .ci/android/build.sh
-          .ci/android/build.sh -t standard -b Release
+          .ci/android/build.sh -t standard -b Release ${{ matrix.cmake_args }}
           ls -la artifacts
 
       - name: Upload APK
         uses: actions/upload-artifact@v7
         with:
-          name: eglantine-android-${{ github.sha }}
+          name: eglantine-android-${{ matrix.variant }}
           path: artifacts/*.apk
           if-no-files-found: error
           compression-level: 0

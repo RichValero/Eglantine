@@ -64,7 +64,8 @@ android {
     }
 
     defaultConfig {
-        applicationId = "dev.eden.eden_emulator"
+        // EGL_APP_ID lets the CI install Eglantine builds side by side with Eden.
+        applicationId = System.getenv("EGL_APP_ID") ?: "dev.eden.eden_emulator"
         minSdk = 24
         targetSdk = 36
         versionName = getGitVersion()
@@ -190,8 +191,8 @@ android {
             isDefault = true
             minSdk = 33
 
-            manifestPlaceholders += mapOf("appNameBase" to "Eden")
-            resValue("string", "app_name_suffixed", "Eden")
+            manifestPlaceholders += mapOf("appNameBase" to (System.getenv("EGL_APP_NAME") ?: "Eden"))
+            resValue("string", "app_name_suffixed", System.getenv("EGL_APP_NAME") ?: "Eden")
 
             ndk {
                 abiFilters += listOf("arm64-v8a")
@@ -270,7 +271,7 @@ android {
 
         // apply nightly suffix I/A
         resValue("string", "app_name_suffixed", "$currentName$suffix")
-        resValue("string", "app_name", "Eden$suffix")
+        resValue("string", "app_name", (System.getenv("EGL_APP_NAME") ?: "Eden") + suffix)
     }
 
     sourceSets {
